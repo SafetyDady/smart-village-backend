@@ -101,6 +101,12 @@ def get_profile():
     """Get current user profile"""
     try:
         current_user_id = get_jwt_identity()
+        
+        # Convert string UUID to UUID object if needed
+        if isinstance(current_user_id, str):
+            import uuid
+            current_user_id = uuid.UUID(current_user_id)
+        
         user = User.query.get(current_user_id)
         
         if not user:
