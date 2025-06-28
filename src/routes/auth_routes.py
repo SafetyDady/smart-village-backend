@@ -56,6 +56,13 @@ def login():
         
         db.session.commit()
         
+        # Get user permissions from roles
+        user_permissions = []
+        for role in user.roles:
+            for permission in role.permissions:
+                if permission.name not in user_permissions:
+                    user_permissions.append(permission.name)
+        
         # Return user info and tokens
         return jsonify({
             'message': 'Login successful',
@@ -67,7 +74,8 @@ def login():
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
-                'roles': [role.name for role in user.roles]
+                'roles': [role.name for role in user.roles],
+                'permissions': user_permissions
             }
         }), 200
         
@@ -98,6 +106,13 @@ def get_profile():
         if not user:
             return jsonify({'message': 'User not found'}), 404
         
+        # Get user permissions from roles
+        user_permissions = []
+        for role in user.roles:
+            for permission in role.permissions:
+                if permission.name not in user_permissions:
+                    user_permissions.append(permission.name)
+        
         return jsonify({
             'user': {
                 'id': str(user.id),
@@ -109,7 +124,8 @@ def get_profile():
                 'is_verified': user.is_verified,
                 'last_login': user.last_login.isoformat() if user.last_login else None,
                 'created_at': user.created_at.isoformat(),
-                'roles': [role.name for role in user.roles]
+                'roles': [role.name for role in user.roles],
+                'permissions': user_permissions
             }
         }), 200
         

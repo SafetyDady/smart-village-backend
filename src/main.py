@@ -27,18 +27,36 @@ def create_app():
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
     
-    # Database configuration
-    database_path = os.path.join(os.path.dirname(__file__), 'database', 'app.db')
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{database_path}"
+    # Database configuration - Support both PostgreSQL and SQLite
+    if os.environ.get('DATABASE_URL'):
+        # Production: Use PostgreSQL from Railway
+        database_url = os.environ.get('DATABASE_URL')
+        # Handle Railway's postgres:// URL format
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    else:
+        # Development: Use SQLite
+        database_path = os.path.join(os.path.dirname(__file__), 'database', 'app.db')
+        app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{database_path}"
+    
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Initialize extensions
     db.init_app(app)
     jwt = JWTManager(app)
     
-    # Enable CORS for all routes
-    CORS(app, origins=['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5176'], 
-         supports_credentials=True)
+    # Enable CORS for all routes including Railway domains
+    cors_origins = [
+        'http://localhost:3000', 
+        'http://localhost:5173', 
+        'http://localhost:5174',
+        'http://localhost:5175',
+        'http://localhost:5176',
+        'https://*.railway.app',
+        'https://*.vercel.app'
+    ]
+    CORS(app, origins=cors_origins, supports_credentials=True)
     
     # Register blueprints
     app.register_blueprint(user_bp, url_prefix='/api')
@@ -165,13 +183,14 @@ def create_default_data():
             if not Role.query.filter_by(name=role_data['name']).first():
                 role = Role(name=role_data['name'], description=role_data['description'])
                 
+                # Add role to session first to avoid autoflush conflicts
+                db.session.add(role)
+                
                 # Add permissions to role
                 for perm_name in role_data['permissions']:
                     permission = Permission.query.filter_by(name=perm_name).first()
                     if permission:
                         role.permissions.append(permission)
-                
-                db.session.add(role)
         
         # Create superadmin user
         if not User.query.filter_by(username='superadmin').first():
