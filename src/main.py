@@ -46,7 +46,7 @@ def create_app():
     db.init_app(app)
     jwt = JWTManager(app)
     
-    # Enable CORS for all routes including Railway domains
+    # Enable CORS for all routes including Railway domains and Manus deployment
     cors_origins = [
         'http://localhost:3000', 
         'http://localhost:5173', 
@@ -54,7 +54,9 @@ def create_app():
         'http://localhost:5175',
         'http://localhost:5176',
         'https://*.railway.app',
-        'https://*.vercel.app'
+        'https://*.vercel.app',
+        'https://rcunvfsi.manus.space',
+        'https://*.manus.space'
     ]
     CORS(app, origins=cors_origins, supports_credentials=True)
     
@@ -286,5 +288,7 @@ def create_default_data():
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5002)
+    # Use PORT environment variable for Railway deployment
+    port = int(os.environ.get('PORT', 5002))
+    app.run(debug=False, host='0.0.0.0', port=port)
 
