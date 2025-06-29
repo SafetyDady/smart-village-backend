@@ -1,6 +1,6 @@
 import os
 import sys
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -96,6 +96,16 @@ def create_app():
             'version': '1.0.0'
         })
     
+    # API health check endpoint
+    @app.route('/api/health')
+    def api_health_check():
+        return jsonify({
+            'status': 'healthy',
+            'service': 'Smart Village API',
+            'version': '1.0.0',
+            'timestamp': datetime.utcnow().isoformat()
+        })
+    
     # API info endpoint
     @app.route('/api/info')
     def api_info():
@@ -138,7 +148,21 @@ def create_app():
     def serve(path):
         static_folder_path = app.static_folder
         if static_folder_path is None:
-            return "Static folder not configured", 404
+            # Return API info instead of 404 when no static folder
+            return jsonify({
+                'name': 'Smart Village Management API',
+                'version': '1.0.0',
+                'status': 'running',
+                'endpoints': {
+                    'auth': '/api/auth',
+                    'users': '/api/users',
+                    'admin': '/api/admin',
+                    'properties': '/api/properties',
+                    'villages': '/api/villages',
+                    'emergency_override': '/api/emergency-override',
+                    'health': '/api/health'
+                }
+            })
 
         if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
             return send_from_directory(static_folder_path, path)
@@ -147,7 +171,13 @@ def create_app():
             if os.path.exists(index_path):
                 return send_from_directory(static_folder_path, 'index.html')
             else:
-                return "index.html not found", 404
+                # Return API info instead of 404 when index.html not found
+                return jsonify({
+                    'name': 'Smart Village Management API',
+                    'version': '1.0.0',
+                    'status': 'running',
+                    'message': 'Frontend not available, API endpoints accessible'
+                })
     
     return app
 
