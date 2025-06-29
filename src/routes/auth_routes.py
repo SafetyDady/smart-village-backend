@@ -57,11 +57,7 @@ def login():
         db.session.commit()
         
         # Get user permissions from roles
-        user_permissions = []
-        for role in user.roles:
-            for permission in role.permissions:
-                if permission.name not in user_permissions:
-                    user_permissions.append(permission.name)
+        user_permissions = user.get_permissions()
         
         # Return user info and tokens
         return jsonify({
@@ -166,4 +162,73 @@ def auth_health():
         'service': 'Authentication Service',
         'timestamp': datetime.utcnow().isoformat()
     }), 200
+
+
+# Helper functions for permission checking
+from functools import wraps
+
+def get_current_user():
+    """Get current authenticated user"""
+    try:
+        verify_jwt_in_request()
+        current_user_id = get_jwt_identity()
+        
+        if isinstance(current_user_id, str):
+            import uuid
+            current_user_id = uuid.UUID(current_user_id)
+        
+        user = User.query.get(current_user_id)
+        return user
+    except:
+        return None
+
+def require_permission(permission_name):
+    """Decorator to require specific permission"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            try:
+                verify_jwt_in_request()
+                current_user = get_current_user()
+                
+                if not current_user:
+                    return jsonify({'error': 'Authentication required'}), 401
+                
+                if not current_user.has_permission(permission_name):
+                    return jsonify({
+                        'error': f'Permission {permission_name} required',
+                        'code': 'PERMISSION_DENIED'
+                    }), 403
+                
+                return f(*args, **kwargs)
+            except Exception as e:
+                return jsonify({'error': 'Authentication failed'}), 401
+        
+        return decorated_function
+    return decorator
+
+def require_role(role_name):
+    """Decorator to require specific role"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            try:
+                verify_jwt_in_request()
+                current_user = get_current_user()
+                
+                if not current_user:
+                    return jsonify({'error': 'Authentication required'}), 401
+                
+                if not current_user.has_role(role_name):
+                    return jsonify({
+                        'error': f'Role {role_name} required',
+                        'code': 'ROLE_DENIED'
+                    }), 403
+                
+                return f(*args, **kwargs)
+            except Exception as e:
+                return jsonify({'error': 'Authentication failed'}), 401
+        
+        return decorated_function
+    return decorator
 

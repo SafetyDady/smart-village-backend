@@ -18,6 +18,15 @@ from src.routes.auth_routes import auth_bp
 from src.routes.admin_routes import admin_bp
 from src.routes.property_routes import property_bp
 
+# Import new models and routes
+from src.models.village import Village
+from src.models.user_village import UserVillage
+from src.models.emergency_override import EmergencyOverride
+from src.routes.village_routes import village_bp
+from src.routes.user_village_routes import user_village_bp
+from src.routes.emergency_override_routes import emergency_bp
+from src.middleware.security_middleware import register_security_middleware
+
 def create_app():
     app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
     
@@ -56,15 +65,24 @@ def create_app():
         'https://*.railway.app',
         'https://*.vercel.app',
         'https://rcunvfsi.manus.space',
+        'https://bmoicqdp.manus.space',
         'https://*.manus.space'
     ]
     CORS(app, origins=cors_origins, supports_credentials=True)
     
-    # Register blueprints
+    # Register existing blueprints
     app.register_blueprint(user_bp, url_prefix='/api')
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
     app.register_blueprint(property_bp, url_prefix='/api')
+    
+    # Register new blueprints
+    app.register_blueprint(village_bp)
+    app.register_blueprint(user_village_bp)
+    app.register_blueprint(emergency_bp)
+    
+    # Register security middleware
+    register_security_middleware(app)
     
     # Health check endpoint
     @app.route('/health')
@@ -87,6 +105,8 @@ def create_app():
                 'users': '/api/users',
                 'admin': '/api/admin',
                 'properties': '/api/properties',
+                'villages': '/api/villages',
+                'emergency_override': '/api/emergency-override',
                 'health': '/health'
             }
         })
@@ -149,7 +169,18 @@ def create_default_data():
             {'name': 'finance.delete', 'resource': 'finance', 'action': 'delete', 'description': 'Delete financial records'},
             {'name': 'report.read', 'resource': 'reports', 'action': 'read', 'description': 'View reports'},
             {'name': 'report.create', 'resource': 'reports', 'action': 'create', 'description': 'Generate reports'},
-            {'name': 'system.admin', 'resource': 'system', 'action': 'admin', 'description': 'System administration access'}
+            {'name': 'system.admin', 'resource': 'system', 'action': 'admin', 'description': 'System administration access'},
+            
+            # New village and role management permissions
+            {'name': 'villages.create', 'resource': 'villages', 'action': 'create', 'description': 'Create new villages'},
+            {'name': 'villages.read', 'resource': 'villages', 'action': 'read', 'description': 'View village information'},
+            {'name': 'villages.update', 'resource': 'villages', 'action': 'update', 'description': 'Update village information'},
+            {'name': 'villages.delete', 'resource': 'villages', 'action': 'delete', 'description': 'Delete villages'},
+            {'name': 'users.assign_village', 'resource': 'users', 'action': 'assign_village', 'description': 'Assign villages to users'},
+            {'name': 'users.assign_role', 'resource': 'users', 'action': 'assign_role', 'description': 'Assign roles to users'},
+            {'name': 'audit.emergency_override', 'resource': 'audit', 'action': 'emergency_override', 'description': 'Create emergency overrides'},
+            {'name': 'audit.read', 'resource': 'audit', 'action': 'read', 'description': 'View audit logs'},
+            {'name': 'system.maintenance', 'resource': 'system', 'action': 'maintenance', 'description': 'Perform system maintenance'}
         ]
         
         for perm_data in permissions_data:
@@ -165,19 +196,25 @@ def create_default_data():
         # Create default roles
         roles_data = [
             {
-                'name': 'SuperAdmin',
+                'name': 'superadmin',
                 'description': 'Super Administrator with full access',
                 'permissions': [p['name'] for p in permissions_data]
             },
             {
-                'name': 'Admin',
-                'description': 'Administrator with limited access',
-                'permissions': ['user.read', 'property.read', 'property.update', 'property.create', 'admin.property_types', 'admin.property_statuses', 'finance.read', 'report.read']
+                'name': 'village_admin',
+                'description': 'Village Administrator with village-scoped access',
+                'permissions': [
+                    'villages.read', 'villages.update',
+                    'user.read', 'user.update',
+                    'property.create', 'property.read', 'property.update', 'property.delete',
+                    'finance.create', 'finance.read', 'finance.update',
+                    'report.read', 'report.create'
+                ]
             },
             {
-                'name': 'User',
-                'description': 'Regular user with basic access',
-                'permissions': ['property.read', 'finance.read']
+                'name': 'village_user',
+                'description': 'Village User with read-only access',
+                'permissions': ['property.read', 'finance.read', 'report.read']
             }
         ]
         
@@ -196,16 +233,16 @@ def create_default_data():
         
         # Create superadmin user
         if not User.query.filter_by(username='superadmin').first():
-            superadmin_role = Role.query.filter_by(name='SuperAdmin').first()
+            superadmin_role = Role.query.filter_by(name='superadmin').first()
             superadmin = User(
                 username='superadmin',
-                email='superadmin@smartvillage.local',
+                email='admin@smartvillage.com',
                 first_name='Super',
-                last_name='Admin',
+                last_name='Administrator',
                 is_active=True,
                 is_verified=True
             )
-            superadmin.set_password('SmartVillage2025!')
+            superadmin.set_password('admin123')
             
             if superadmin_role:
                 superadmin.roles.append(superadmin_role)
@@ -238,7 +275,7 @@ def create_default_data():
         for status_data in property_statuses_data:
             if not PropertyStatus.query.filter_by(name=status_data['name']).first():
                 property_status = PropertyStatus(
-                    name=status_data['name'],
+                    name=status_data['color'],
                     color=status_data['color'],
                     description=status_data['description']
                 )

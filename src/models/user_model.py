@@ -97,8 +97,8 @@ class User(db.Model):
         self.failed_login_attempts = 0
     
     def has_role(self, role_name):
-        """Check if user has specific role"""
-        return any(role.name == role_name for role in self.roles)
+        """Check if user has specific role (case-insensitive)"""
+        return any(role.name.lower() == role_name.lower() for role in self.roles)
     
     def has_permission(self, permission_name):
         """Check if user has specific permission"""
@@ -290,4 +290,188 @@ def update_user_timestamp(mapper, connection, target):
 @event.listens_for(Role, 'before_update')
 def update_role_timestamp(mapper, connection, target):
     target.updated_at = datetime.utcnow()
+
+
+    # Village-related methods
+    def get_assigned_villages(self, active_only=True):
+        """Get villages assigned to this user"""
+        from src.models.user_village import UserVillage
+        from src.models.village import Village
+        
+        query = db.session.query(Village).join(UserVillage).filter(
+            UserVillage.user_id == self.id
+        )
+        if active_only:
+            query = query.filter(UserVillage.is_active == True)
+        
+        return query.all()
+    
+    def get_village_assignments(self, active_only=True):
+        """Get user-village assignments"""
+        from src.models.user_village import UserVillage
+        
+        query = UserVillage.query.filter_by(user_id=self.id)
+        if active_only:
+            query = query.filter_by(is_active=True)
+        
+        return query.all()
+    
+    def has_village_access(self, village_id):
+        """Check if user has access to specific village"""
+        # Super admin has access to all villages
+        if self.has_role('superadmin'):
+            return True
+        
+        from src.models.user_village import UserVillage
+        assignment = UserVillage.query.filter_by(
+            user_id=self.id,
+            village_id=village_id,
+            is_active=True
+        ).first()
+        
+        return assignment is not None
+    
+    def get_primary_village(self):
+        """Get user's primary village"""
+        from src.models.user_village import UserVillage
+        assignment = UserVillage.query.filter_by(
+            user_id=self.id,
+            is_primary=True,
+            is_active=True
+        ).first()
+        
+        return assignment.village if assignment else None
+    
+    def has_village_permission(self, village_id, permission_type):
+        """Check if user has specific permission for a village"""
+        # Super admin has all permissions
+        if self.has_role('superadmin'):
+            return True
+        
+        from src.models.user_village import UserVillage
+        assignment = UserVillage.query.filter_by(
+            user_id=self.id,
+            village_id=village_id,
+            is_active=True
+        ).first()
+        
+        if not assignment:
+            return False
+        
+        return assignment.has_village_permission(permission_type)
+    
+    def assign_to_village(self, village_id, assigned_by_id, **permissions):
+        """Assign user to a village"""
+        from src.models.user_village import UserVillage
+        return UserVillage.assign_user_to_village(
+            user_id=self.id,
+            village_id=village_id,
+            assigned_by_id=assigned_by_id,
+            **permissions
+        )
+    
+    def remove_from_village(self, village_id):
+        """Remove user from a village"""
+        from src.models.user_village import UserVillage
+        return UserVillage.remove_user_from_village(
+            user_id=self.id,
+            village_id=village_id
+        )
+    
+    # Emergency Override methods
+    def can_emergency_override(self):
+        """Check if user can create emergency overrides"""
+        return self.has_permission('audit.emergency_override')
+    
+    def create_emergency_override(self, target_resource, action, reason, 
+                                target_id=None, hours=1, ip_address=None, user_agent=None):
+        """Create emergency override"""
+        if not self.can_emergency_override():
+            raise PermissionError("User does not have emergency override permission")
+        
+        from src.models.emergency_override import EmergencyOverride
+        return EmergencyOverride.create_override(
+            user_id=self.id,
+            target_resource=target_resource,
+            action=action,
+            reason=reason,
+            target_id=target_id,
+            hours=hours,
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
+    
+    def has_emergency_override(self, resource, target_id, action):
+        """Check if user has valid emergency override"""
+        from src.models.emergency_override import EmergencyOverride
+        override = EmergencyOverride.check_override(
+            user_id=self.id,
+            resource=resource,
+            target_id=target_id,
+            action=action
+        )
+        return override is not None
+    
+    def get_active_overrides(self):
+        """Get user's active emergency overrides"""
+        from src.models.emergency_override import EmergencyOverride
+        return EmergencyOverride.get_active_overrides(user_id=self.id)
+    
+    # Enhanced permission checking with village scope
+    def has_permission_with_village_scope(self, permission, village_id=None):
+        """Check permission with village scope consideration"""
+        # Check basic permission first
+        if not self.has_permission(permission):
+            return False
+        
+        # Super admin bypasses village scope
+        if self.has_role('superadmin'):
+            return True
+        
+        # If village_id is specified, check village access
+        if village_id:
+            return self.has_village_access(village_id)
+        
+        # If no village specified, user must have at least one village
+        return len(self.get_assigned_villages()) > 0
+    
+    def check_resource_access(self, resource, action, village_id=None, target_id=None):
+        """Comprehensive resource access check"""
+        permission = f"{resource}.{action}"
+        
+        # Check emergency override first
+        if self.has_emergency_override(resource, target_id, action):
+            return True, "emergency_override"
+        
+        # Check regular permission with village scope
+        if self.has_permission_with_village_scope(permission, village_id):
+            return True, "permission_granted"
+        
+        return False, "access_denied"
+    
+    # Enhanced to_dict method
+    def to_dict_with_villages(self, include_sensitive=False):
+        """Convert user to dictionary including village information"""
+        data = self.to_dict(include_sensitive=include_sensitive)
+        
+        # Add village information
+        villages = []
+        for assignment in self.get_village_assignments():
+            village_data = assignment.village.to_summary()
+            village_data.update({
+                'assignment': assignment.to_dict()
+            })
+            villages.append(village_data)
+        
+        data['villages'] = villages
+        data['primary_village'] = None
+        
+        primary_village = self.get_primary_village()
+        if primary_village:
+            data['primary_village'] = primary_village.to_summary()
+        
+        # Add emergency override capability
+        data['can_emergency_override'] = self.can_emergency_override()
+        
+        return data
 
