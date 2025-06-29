@@ -76,7 +76,15 @@ def create_app():
         'https://frljqqjw.manus.space',
         'https://gsigolsh.manus.space',
         'https://smart-village-admin-frontend-g18dhr5ng-sss-group.vercel.app',
-        'https://smart-village-admin-frontend-g18dhr5ng-sss-group.vercel.app/'
+        'https://smart-village-admin-frontend-g18dhr5ng-sss-group.vercel.app/',
+        'https://rneprrxk.manus.space',
+        'https://rneprrxk.manus.space/',
+        'https://jhveogpa.manus.space',
+        'https://jhveogpa.manus.space/',
+        'https://xmaqoxqt.manus.space',
+        'https://xmaqoxqt.manus.space/',
+        'https://vuaxpgwv.manus.space',
+        'https://vuaxpgwv.manus.space/'
     ]
     
     # CORS Debugging: Log all CORS-related information
