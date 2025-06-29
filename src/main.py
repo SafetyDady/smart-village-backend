@@ -408,6 +408,46 @@ def create_default_data():
                     )
                     db.session.add(property_obj)
         
+        # Create default villages to match PostgreSQL data
+        if Village.query.count() == 0:
+            default_villages = [
+                {
+                    'name': 'แมกไลลาวิลเลจ',
+                    'code': 'MGL001',
+                    'description': 'หมู่บ้านแมกไลลาวิลเลจ',
+                    'address': 'กรุงเทพมหานคร',
+                    'province': 'กรุงเทพมหานคร',
+                    'district': 'เขตบางรัก',
+                    'sub_district': 'แขวงสีลม',
+                    'postal_code': '10500'
+                },
+                {
+                    'name': 'บ้านถิ่นเมตร',
+                    'code': 'BTM001', 
+                    'description': 'หมู่บ้านบ้านถิ่นเมตร',
+                    'address': 'เชียงใหม่',
+                    'province': 'เชียงใหม่',
+                    'district': 'เมืองเชียงใหม่',
+                    'sub_district': 'ตำบลสุเทพ',
+                    'postal_code': '50200'
+                }
+            ]
+            
+            for village_data in default_villages:
+                village = Village(
+                    name=village_data['name'],
+                    code=village_data['code'],
+                    description=village_data['description'],
+                    address=village_data['address'],
+                    province=village_data['province'],
+                    district=village_data['district'],
+                    sub_district=village_data['sub_district'],
+                    postal_code=village_data['postal_code'],
+                    is_active=True,
+                    is_verified=True
+                )
+                db.session.add(village)
+        
         db.session.commit()
         print("✅ Default data created successfully")
         
