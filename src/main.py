@@ -5,7 +5,7 @@ from datetime import timedelta, datetime
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from src.models.user import db
@@ -72,8 +72,45 @@ def create_app():
         'https://rpsrvjvk.manus.space',
         'https://lubxoyfs.manus.space',
         'https://lcubsitv.manus.space',
-        'https://ypjaefpz.manus.space'
+        'https://ypjaefpz.manus.space',
+        'https://frljqqjw.manus.space'
     ]
+    
+    # CORS Debugging: Log all CORS-related information
+    @app.before_request
+    def log_cors_info():
+        origin = request.headers.get('Origin')
+        method = request.method
+        path = request.path
+        
+        if origin:
+            app.logger.info(f"🌐 CORS Request - Origin: {origin}, Method: {method}, Path: {path}")
+            
+            # Check if origin is in allowed list
+            origin_allowed = False
+            for allowed_origin in cors_origins:
+                if allowed_origin == origin or (allowed_origin.endswith('*') and origin.startswith(allowed_origin[:-1])):
+                    origin_allowed = True
+                    break
+            
+            app.logger.info(f"🔍 CORS Check - Origin '{origin}' allowed: {origin_allowed}")
+            
+            # Log all request headers for debugging
+            app.logger.info(f"📋 Request Headers: {dict(request.headers)}")
+    
+    @app.after_request
+    def log_cors_response(response):
+        origin = request.headers.get('Origin')
+        if origin:
+            # Log response headers
+            app.logger.info(f"📤 CORS Response Headers: {dict(response.headers)}")
+            
+            # Check if CORS headers are present
+            has_cors_headers = 'Access-Control-Allow-Origin' in response.headers
+            app.logger.info(f"✅ CORS Headers Present: {has_cors_headers}")
+            
+        return response
+    
     CORS(app, origins=cors_origins, supports_credentials=True)
     
     # Register existing blueprints
