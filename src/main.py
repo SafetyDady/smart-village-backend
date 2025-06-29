@@ -66,6 +66,8 @@ def create_app():
         'https://*.vercel.app',
         'https://rcunvfsi.manus.space',
         'https://bmoicqdp.manus.space',
+        'https://hsghpiar.manus.space',
+        'https://eaffjwji.manus.space',
         'https://*.manus.space'
     ]
     CORS(app, origins=cors_origins, supports_credentials=True)
