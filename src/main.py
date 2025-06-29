@@ -79,6 +79,8 @@ def create_app():
         'https://smart-village-admin-frontend-g18dhr5ng-sss-group.vercel.app/',
         'https://smart-village-admin-frontend.vercel.app',
         'https://smart-village-admin-frontend.vercel.app/',
+        'https://smart-village-admin-frontend-59pus83l0-sss-group.vercel.app',
+        'https://smart-village-admin-frontend-59pus83l0-sss-group.vercel.app/',
         'https://smart-village-admin-frontend-1cxri4zf-sss-group.vercel.app',
         'https://smart-village-admin-frontend-1cxri4zf-sss-group.vercel.app/',
         'https://rneprrxk.manus.space',
