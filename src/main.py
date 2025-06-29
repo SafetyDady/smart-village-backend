@@ -69,7 +69,9 @@ def create_app():
         'https://hsghpiar.manus.space',
         'https://eaffjwji.manus.space',
         'https://ktlacgbd.manus.space',
-        'https://rpsrvjvk.manus.space'
+        'https://rpsrvjvk.manus.space',
+        'https://lubxoyfs.manus.space',
+        'https://lcubsitv.manus.space'
     ]
     CORS(app, origins=cors_origins, supports_credentials=True)
     
