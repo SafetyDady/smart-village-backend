@@ -84,7 +84,9 @@ def create_app():
         'https://xmaqoxqt.manus.space',
         'https://xmaqoxqt.manus.space/',
         'https://vuaxpgwv.manus.space',
-        'https://vuaxpgwv.manus.space/'
+        'https://vuaxpgwv.manus.space/',
+        'https://vmcpjfqs.manus.space',
+        'https://vmcpjfqs.manus.space/'
     ]
     
     # CORS Debugging: Log all CORS-related information
