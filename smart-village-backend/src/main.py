@@ -85,6 +85,8 @@ def create_app():
         'https://smart-village-admin-frontend-59pus83i0-sss-group.vercel.app/',
         'https://smart-village-admin-frontend-1cxri4zf-sss-group.vercel.app',
         'https://smart-village-admin-frontend-1cxri4zf-sss-group.vercel.app/',
+        'https://smart-village-admin-frontend-r4m5l23e-sss-group.vercel.app',
+        'https://smart-village-admin-frontend-r4m5l23e-sss-group.vercel.app/',
         'https://rneprrxk.manus.space',
         'https://rneprrxk.manus.space/',
         'https://jhveogpa.manus.space',
@@ -96,7 +98,25 @@ def create_app():
         'https://vmcpjfqs.manus.space',
         'https://vmcpjfqs.manus.space/',
         'https://aapmekpr.manus.space',
-        'https://aapmekpr.manus.space/'
+        'https://aapmekpr.manus.space/',
+        'https://aujmftae.manus.space',
+        'https://aujmftae.manus.space/',
+        'https://avwhopdy.manus.space',
+        'https://avwhopdy.manus.space/',
+        'https://epfxrzdo.manus.space',
+        'https://epfxrzdo.manus.space/',
+        'https://tmmenbvm.manus.space',
+        'https://tmmenbvm.manus.space/',
+        'https://miybwkmu.manus.space',
+        'https://miybwkmu.manus.space/',
+        'https://bebqckex.manus.space',
+        'https://bebqckex.manus.space/',
+        'https://wgiexyso.manus.space',
+        'https://wgiexyso.manus.space/',
+        'https://wgscfdrb.manus.space',
+        'https://wgscfdrb.manus.space/',
+        'https://ytzwirsl.manus.space',
+        'https://ytzwirsl.manus.space/'
     ]
     
     # CORS Debugging: Log all CORS-related information
