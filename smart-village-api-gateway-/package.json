@@ -1,0 +1,43 @@
+{
+  "name": "smart-village-api-gateway",
+  "version": "1.0.0",
+  "description": "API Gateway for Smart Village Management System using Cloudflare Workers",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:dev": "wrangler deploy --env development",
+    "deploy:prod": "wrangler deploy --env production",
+    "tail": "wrangler tail",
+    "test": "wrangler dev --test",
+    "lint": "eslint src/",
+    "format": "prettier --write src/"
+  },
+  "keywords": [
+    "cloudflare-workers",
+    "api-gateway",
+    "smart-village",
+    "authentication",
+    "cors",
+    "security"
+  ],
+  "author": "Smart Village Development Team",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smart-village/api-gateway.git"
+  },
+  "bugs": {
+    "url": "https://github.com/smart-village/api-gateway/issues"
+  },
+  "homepage": "https://github.com/smart-village/api-gateway#readme"
+}
+

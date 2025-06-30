@@ -1,0 +1,72 @@
+{
+  "name": "smart-village-auth-service",
+  "version": "1.0.0",
+  "description": "Authentication service for Smart Village Management System",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write src/",
+    "migrate": "node src/scripts/migrate.js",
+    "seed": "node src/scripts/seed.js"
+  },
+  "keywords": [
+    "authentication",
+    "jwt",
+    "session",
+    "smart-village",
+    "nodejs",
+    "express"
+  ],
+  "author": "Smart Village Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0",
+    "joi": "^17.13.3",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.3.1",
+    "express-validator": "^7.1.0",
+    "cookie-parser": "^1.4.6",
+    "uuid": "^10.0.0",
+    "dotenv": "^16.4.5",
+    "morgan": "^1.10.0",
+    "compression": "^1.7.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.2",
+    "@types/jest": "^29.5.12"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/scripts/**",
+      "!src/config/**"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
+  }
+}
+

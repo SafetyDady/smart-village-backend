@@ -1,0 +1,28 @@
+name = "smart-village-api-gateway"
+main = "src/index.js"
+compatibility_date = "2024-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.development]
+name = "smart-village-api-gateway-dev"
+
+[env.production]
+name = "smart-village-api-gateway-prod"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "development"
+AUTH_SERVICE_URL = "http://localhost:3002"
+MAIN_API_URL = "http://localhost:5002"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+AUTH_SERVICE_URL = "https://auth.smartvillage.com"
+MAIN_API_URL = "https://api.smartvillage.com"
+
+# CORS settings
+[cors]
+origins = ["http://localhost:3000", "https://smartvillage.vercel.app"]
+methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+headers = ["Content-Type", "Authorization", "X-Requested-With"]
+
